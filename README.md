@@ -9,4 +9,6 @@ Plug 'lvht/tagbar-markdown'
 
 Please make sure **php** is in your `$PATH` and the `bin/mdctags` has execute permission.
 
+execute ':MDAgenda' to insert content agenda in the current line.
+
 Enjoy :)

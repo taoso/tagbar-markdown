@@ -1,12 +1,15 @@
 #!/usr/bin/env php
+<?php
+if (!isset($argv[2])) {
+    echo <<<EOL
 !_TAG_FILE_FORMAT       2       /extended format; --format=1 will not append ;" to lines/'
 !_TAG_FILE_SORTED       0       /0=unsorted, 1=sorted, 2=foldcase/'
 !_TAG_PROGRAM_AUTHOR    lvht /git@lvht.net/'
 !_TAG_PROGRAM_NAME      mdctags        //'
 !_TAG_PROGRAM_URL       https://github.com/lvht/mdctags /official site/'
 !_TAG_PROGRAM_VERSION   0.1.0   //'
-
-<?php
+EOL;
+}
 
 if (isset($argv[1])) {
     $f = new SplFileObject($argv[1]);
@@ -37,7 +40,14 @@ if (isset($argv[1])) {
             $plevel = $level > 1 ? $level - 1 : 0;
             $scope = $tmp ? "h$plevel:$tmp" : '';
             $type = chr(0x60 + $level);
-            echo "$title\t$path\t/^$anchor\$/;\"\t$type\tline:$lineNo\t$scope\n";
+            if (isset($argv[2])) {
+                if ($level > 1) {
+                    $title = $matches[2];
+                    echo str_pad('', strlen($matches[1])-2, ' ')."- [$title](#$title)\n";
+                }
+            } else {
+                echo "$title\t$path\t/^$anchor\$/;\"\t$type\tline:$lineNo\t$scope\n";
+            }
         }
     }
 }
