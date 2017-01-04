@@ -15,31 +15,39 @@ if (isset($argv[1])) {
     $f = new SplFileObject($argv[1]);
 
     $path = $f->getRealPath();
-    $levels = [];
+    $stack = [];
 
     $lineNo = 0;
     foreach ($f as $line) {
-        $lineNo++;
-        $line = trim($line);
-        if (preg_match('/^(#+)\s+(\S.*)$/', $line, $matches)) {
-            $level = strlen($matches[1]);
-            $lastLevel = count($levels);
-
-            $matched = $matches[2];
-            if ($level > $lastLevel) {
-                $levels[] = $matched;
-            } elseif ($level < $lastLevel) {
-                array_pop($levels);
-            } else {
-                $levels[$lastLevel-1] = $matched;
-            }
+        ++$lineNo;
+        if (preg_match('/^(#+)\s+(\S.*)$/', trim($line), $matches)) {
             $title = $matches[2];
             $anchor = $matches[0];
 
-            $tmp = implode('::', array_slice($levels, 0, count($levels) - 1));
+            $line = [
+                'title' => $matches[2],
+                'level' => strlen($matches[1]),
+            ];
+
+            if (count($stack) == 0) {
+                array_unshift($stack, $line);
+            } elseif ($stack[0]['level'] < $line['level']) {
+                array_unshift($stack, $line);
+            } else {
+                while (count($stack) && $stack[0]['level'] >= $line['level']) {
+                    array_shift($stack);
+                }
+                array_unshift($stack, $line);
+            }
+
+            $scopes = array_map(function ($line) { return $line['title']; }, array_reverse($stack));
+            array_pop($scopes);
+            $scopesStr = implode('::', $scopes);
+            $level = $line['level'];
             $plevel = $level > 1 ? $level - 1 : 0;
-            $scope = $tmp ? "h$plevel:$tmp" : '';
+            $scope = $scopesStr ? "h$plevel:$scopesStr" : '';
             $type = chr(0x60 + $level);
+
             if (isset($argv[2])) {
                 if ($level > 1) {
                     $title = $matches[2];
