@@ -44,6 +44,8 @@ let g:tagbar_type_markdown = {
     \}
 \}
 
+let g:tagbar_type_ghmarkdown = g:tagbar_type_markdown
+
 let &cpo = s:save_cpo
 unlet s:save_cpo
 
