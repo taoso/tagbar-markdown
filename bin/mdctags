@@ -6,8 +6,9 @@ if (!isset($argv[2])) {
 !_TAG_FILE_SORTED       0       /0=unsorted, 1=sorted, 2=foldcase/'
 !_TAG_PROGRAM_AUTHOR    lvht /git@lvht.net/'
 !_TAG_PROGRAM_NAME      mdctags        //'
-!_TAG_PROGRAM_URL       https://github.com/lvht/mdctags /official site/'
+!_TAG_PROGRAM_URL       https://github.com/lvht/tagbar-markdown /official site/'
 !_TAG_PROGRAM_VERSION   0.1.0   //'
+
 EOL;
 }
 
@@ -44,7 +45,12 @@ if (isset($argv[1])) {
             array_pop($scopes);
             $scopesStr = implode('::', $scopes);
             $level = $line['level'];
-            $plevel = $level > 1 ? $level - 1 : 0;
+            if (count($stack) < 2) {
+                $plevel = $level > 1 ? $level - 1 : 0;
+            } else {
+                $parent = $stack[1];
+                $plevel = $parent['level'];
+            }
             $scope = $scopesStr ? "h$plevel:$scopesStr" : '';
             $type = chr(0x60 + $level);
 
