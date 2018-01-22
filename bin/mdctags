@@ -17,11 +17,15 @@ if (isset($argv[1])) {
 
     $path = $f->getRealPath();
     $stack = [];
+    $in_code = false;
 
     $lineNo = 0;
     foreach ($f as $line) {
         ++$lineNo;
-        if (preg_match('/^(#+)\s+(\S.*)$/', trim($line), $matches)) {
+        if (preg_match('/^```/', $line)) {
+            $in_code = !$in_code;
+        }
+        if (!$in_code && preg_match('/^(#+)\s+(\S.*)$/', trim($line), $matches)) {
             $title = $matches[2];
             $anchor = $matches[0];
 
