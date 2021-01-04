@@ -17,21 +17,40 @@ if (isset($argv[1])) {
 
     $path = $f->getRealPath();
     $stack = [];
-    $in_code = false;
+    $inCode = false;
+    $ln = ""; // last line printed
+    $ctLines = [];
+    $longest = 0;
+    $toc = 0;
+    if (isset($argv[2])) {
+        switch ($argv[2]) {
+        case '3':
+            $toc = 3;
+            break;
+        case '2':
+            $toc = 2;
+            break;
+        default:
+            $toc = 1;
+        }
+    }
 
     $lineNo = 0;
     foreach ($f as $line) {
         ++$lineNo;
         if (preg_match('/^```/', $line)) {
-            $in_code = !$in_code;
+            $inCode = !$inCode;
         }
-        if (!$in_code && preg_match('/^(#+)\s+(\S.*)$/', rtrim($line), $matches)) {
+        if ($inCode) {
+            continue;
+        }
+        if (preg_match('/^(#+)\s+(\S.*)$/', rtrim($line), $matches)) {
             $title = $matches[2];
             $anchor = $matches[0];
 
             $line = [
                 'title' => $matches[2],
-                'level' => strlen($matches[1]),
+                'level' => mb_strlen($matches[1]),
             ];
 
             if (count($stack) == 0) {
@@ -58,14 +77,36 @@ if (isset($argv[1])) {
             $scope = $scopesStr ? "h$plevel:$scopesStr" : '';
             $type = chr(0x60 + $level);
 
-            if (isset($argv[2])) {
+            if ($toc) {
                 if ($level > 1) {
                     $title = $matches[2];
-                    echo str_pad('', strlen($matches[1])-2, ' ')."- [$title](#$title)\n";
+                    $ln = str_pad('', $line['level'] -2, ' ') . "- [$title](#$title)";
+                    if ($toc === 1) {
+                        echo $ln, "\n";
+                    } else {
+                        // keep track of longest line
+                        $longest = max($longest, mb_strlen($ln));
+                        $ctLines[] = $ln;
+                    }
                 }
             } else {
                 echo "$title\t$path\t/^$anchor\$/;\"\t$type\tline:$lineNo\t$scope\n";
             }
+        } else if ($toc === 3 && preg_match('/^-{3,}\s*$/', rtrim($line), $matches)) {
+            // markdown for a line, and lines are included
+            $ctLines[] = null;
         }
+    }
+    // print out the nicely formatted table of contents
+    if (!empty($ctLines)) {
+        echo ' +', str_pad('', $longest+2, '='), "+\n";
+        for ($i = 0; $i < count($ctLines); $i++) {
+            if ($ctLines[$i] === null) {
+                $ctLines[$i] = str_pad('',$longest, '-'); // add dashes
+            }
+            // print out formatted line
+            printf(" | %-{$longest}s |\n", $ctLines[$i]); // padding for all entries so the table looks nice
+        }
+        echo ' +', str_pad('', $longest+2, '='), "+\n";
     }
 }

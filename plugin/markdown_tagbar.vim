@@ -9,7 +9,7 @@ let s:bin_path = expand('<sfile>:p:h:h').'/bin/mdctags'
 
 function! s:insertAgenda()
 	let md_path = expand('%:p')
-	execute "read !".s:bin_path.' '.md_path.' 1'
+	execute "read !".s:bin_path.' '.md_path.' '.g:mktagbar_content_format
 endfunction
 
 command! -nargs=0 MDAgenda call s:insertAgenda()
@@ -48,6 +48,11 @@ endif
 
 let g:tagbar_type_ghmarkdown = g:tagbar_type_markdown
 let g:tagbar_type_rmd = g:tagbar_type_markdown
+
+"" Set to values 1 through 3. 1 is plain format (just titles)
+"" 2 is titles in a nice table/frame
+"" 3 includes lines (---) in the ToC
+let g:mktagbar_content_format=3
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
